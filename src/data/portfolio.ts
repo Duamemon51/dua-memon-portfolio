@@ -1,0 +1,48 @@
+export const portfolioData = {
+  name: "Dua Memon",
+  title: "Full Stack Developer",
+  bio: "Passionate full-stack developer with expertise in building scalable web applications. I love turning complex problems into simple, beautiful solutions.",
+  email: "you@email.com",
+  github: "https://github.com/yourusername",
+  linkedin: "https://linkedin.com/in/yourusername",
+  location: "Karachi, Pakistan",
+  availability: "Open to opportunities",
+  education: "BS Information Technology",
+  stats: [
+    { num: "2+", label: "Years Experience" },
+    { num: "20+", label: "Projects Shipped" },
+    { num: "10+", label: "Happy Clients" },
+  ],
+  skills: {
+    frontend: ["React", "Next.js", "Tailwind CSS", "Framer Motion"],
+    backend: ["Node.js", "Express",  "Django", "REST APIs"],
+    database: ["MySQL", "MongoDB", "Redis", "Prisma"],
+    devops: ["AWS", "Vercel", "GitHub Actions"],
+  },
+  projects: [
+    {
+      title: "Project Alpha",
+      description: "A full-stack SaaS platform with real-time features, payment integration, and admin dashboard.",
+      tech: ["Next.js", "PostgreSQL", "Stripe", "Redis"],
+      github: "#",
+      live: "#",
+      featured: true,
+    },
+    {
+      title: "Project Beta",
+      description: "RESTful API service handling 100k+ requests/day with JWT auth and rate limiting.",
+      tech: ["Node.js", "Express", "MongoDB", "Docker"],
+      github: "#",
+      live: "#",
+      featured: true,
+    },
+    {
+      title: "Project Gamma",
+      description: "AI-powered dashboard with data visualization and predictive analytics.",
+      tech: ["React", "Python", "FastAPI", "TensorFlow"],
+      github: "#",
+      live: "#",
+      featured: false,
+    },
+  ],
+};
