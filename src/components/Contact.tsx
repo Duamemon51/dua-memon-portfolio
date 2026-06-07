@@ -62,9 +62,9 @@ function IconResponse({ size = 18 }: { size?: number }) {
 }
 
 const socialLinks = [
-  { Icon: IconGithub,   href: portfolioData.github,              label: "GitHub",   value: "github.com/yourusername",   color: "#a78bfa" },
-  { Icon: IconLinkedin, href: portfolioData.linkedin,            label: "LinkedIn", value: "linkedin.com/in/yourusername", color: "#22d3ee" },
-  { Icon: IconMail,     href: `mailto:${portfolioData.email}`,   label: "Email",    value: portfolioData.email,          color: "#f472b6" },
+  { Icon: IconGithub,   href: portfolioData.github,            label: "GitHub",   value: "github.com/Duamemon51",                        color: "#a78bfa" },
+  { Icon: IconLinkedin, href: portfolioData.linkedin,          label: "LinkedIn", value: "linkedin.com/in/dua-memon-it-professional",     color: "#22d3ee" },
+  { Icon: IconMail,     href: `mailto:${portfolioData.email}`, label: "Email",    value: portfolioData.email,                            color: "#f472b6" },
 ];
 
 const infoCards = [

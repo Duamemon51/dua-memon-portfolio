@@ -10,10 +10,11 @@ const roles = [
   "Next.js Developer",
   "Laravel Developer",
   "Node.js Developer",
+  "Express.js Developer",
   "Open Source Contributor",
 ];
 
-const roleColors = ["#22d3ee", "#61dafb", "#a78bfa", "#f472b6", "#86efac", "#fb923c"];
+const roleColors = ["#22d3ee", "#61dafb", "#a78bfa", "#f472b6", "#86efac", "#fb923c", "#facc15"];
 
 function useTypewriter(words: string[], speed = 78, pause = 2000) {
   const [text,      setText]      = useState("");
@@ -71,7 +72,6 @@ function downloadCV() {
   document.body.removeChild(a); URL.revokeObjectURL(url);
 }
 
-// ── Floating tech pill ──
 function TechPill({ label, color, delay, x, y }: { label: string; color: string; delay: number; x: string; y: string }) {
   return (
     <motion.div
@@ -107,7 +107,6 @@ export default function Hero() {
   const { text: typed, wordIndex: roleIdx } = useTypewriter(roles);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Mouse parallax for image
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const springX = useSpring(mouseX, { stiffness: 60, damping: 18 });
@@ -395,12 +394,13 @@ export default function Hero() {
             transition={{ delay: 0.35, duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
             style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, width: "420px", height: "440px" }}
           >
-            {/* Floating tech pills — positioned relative to 420x440 container */}
-            <TechPill label="React"      color="#61dafb" delay={1.2} x="0px"    y="50px"  />
-            <TechPill label="Next.js"    color="#a78bfa" delay={1.4} x="0px"    y="200px" />
-            <TechPill label="Laravel"    color="#f472b6" delay={1.6} x="0px"    y="330px" />
-            <TechPill label="Node.js"    color="#86efac" delay={1.8} x="270px"  y="20px"  />
-            <TechPill label="TypeScript" color="#22d3ee" delay={2.0} x="255px"  y="320px" />
+            {/* Floating tech pills */}
+            <TechPill label="React"      color="#61dafb" delay={1.2} x="0px"   y="50px"  />
+            <TechPill label="Next.js"    color="#a78bfa" delay={1.4} x="0px"   y="200px" />
+            <TechPill label="Laravel"    color="#f472b6" delay={1.6} x="0px"   y="330px" />
+            <TechPill label="Node.js"    color="#86efac" delay={1.8} x="270px" y="20px"  />
+            <TechPill label="Express.js" color="#facc15" delay={2.0} x="255px" y="175px" />
+            <TechPill label="TypeScript" color="#22d3ee" delay={2.2} x="255px" y="320px" />
 
             {/* 3D tilt wrapper */}
             <motion.div

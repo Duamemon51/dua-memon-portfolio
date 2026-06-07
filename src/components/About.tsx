@@ -84,12 +84,11 @@ const infoRows: { Icon: IconComponent; label: string; value: string; color: stri
   { Icon: IconGraduation, label: "Education", value: portfolioData.education,    color: "#fb923c" },
 ];
 
-const services: { Icon: IconComponent; title: string; desc: string; color: string; grad: string }[] = [
-  { Icon: IconLayers,    title: "Full Stack Dev", desc: "React, Next.js & Laravel — end to end", color: "#a78bfa", grad: "rgba(167,139,250,0.12)" },
-  { Icon: IconMonitor,   title: "UI / Frontend",  desc: "Pixel-perfect, animated interfaces",    color: "#22d3ee", grad: "rgba(34,211,238,0.12)"  },
-  { Icon: IconServerSvg, title: "APIs & Backend", desc: "Node.js, Laravel, REST & databases",    color: "#f472b6", grad: "rgba(244,114,182,0.12)" },
+const services = [
+  { Icon: IconLayers,    title: "Full Stack Dev", desc: "React, Next.js, Laravel & PHP — end to end",              color: "#a78bfa", grad: "rgba(167,139,250,0.12)" },
+  { Icon: IconMonitor,   title: "UI / Frontend",  desc: "HTML, CSS, Bootstrap, Tailwind, React, nextjs — pixel-perfect UI",       color: "#22d3ee", grad: "rgba(34,211,238,0.12)"  },
+  { Icon: IconServerSvg, title: "APIs & Backend", desc: "Node.js, Express.js, PHP, Laravel, REST & databases",     color: "#f472b6", grad: "rgba(244,114,182,0.12)" },
 ];
-
 export default function About() {
   const sectionRef = useRef(null);
   const isInView   = useInView(sectionRef, { once: true, margin: "-80px" });
@@ -190,16 +189,19 @@ export default function About() {
                 color:"rgba(124,58,237,0.12)", fontWeight:800, marginBottom:"16px", userSelect:"none" }}>
                 &quot;
               </div>
-              <p style={{ color:"var(--text-muted)", lineHeight:1.9, fontSize:"16px", marginBottom:"16px" }}>
-                I&apos;m a passionate{" "}
-                <span style={{ color:"var(--text)", fontWeight:600 }}>Full Stack Developer</span>{" "}
-                based in <span style={{ color:"var(--cyan)", fontWeight:500 }}>{portfolioData.location}</span>,
-                specializing in{" "}
-                <span style={{ color:"var(--violet2)", fontWeight:500 }}>React</span>,{" "}
-                <span style={{ color:"var(--violet2)", fontWeight:500 }}>Next.js</span>,{" "}
-                <span style={{ color:"#f472b6", fontWeight:500 }}>Laravel</span> &amp;{" "}
-                <span style={{ color:"#86efac", fontWeight:500 }}>Node.js</span>.
-              </p>
+            <p style={{ color:"var(--text-muted)", lineHeight:1.9, fontSize:"16px", marginBottom:"16px" }}>
+  I&apos;m a passionate{" "}
+  <span style={{ color:"var(--text)", fontWeight:600 }}>Full Stack Developer</span>{" "}
+  based in <span style={{ color:"var(--cyan)", fontWeight:500 }}>{portfolioData.location}</span>,
+  specializing in{" "}
+  <span style={{ color:"var(--violet2)", fontWeight:500 }}>React</span>,{" "}
+  <span style={{ color:"var(--violet2)", fontWeight:500 }}>Next.js</span>,{" "}
+  <span style={{ color:"#f472b6", fontWeight:500 }}>Laravel</span>,{" "}
+  <span style={{ color:"#f472b6", fontWeight:500 }}>PHP</span>,{" "}
+  <span style={{ color:"#86efac", fontWeight:500 }}>Node.js</span>,{" "}
+  <span style={{ color:"#fb923c", fontWeight:500 }}>Express.js</span> &amp;{" "}
+  <span style={{ color:"#facc15", fontWeight:500 }}>Tailwind CSS</span>.
+</p>
               <p style={{ color:"var(--text-muted)", lineHeight:1.9, fontSize:"16px", marginBottom:"16px" }}>
                 I love transforming complex problems into elegant, user-friendly solutions —
                 whether it&apos;s crafting pixel-perfect frontends or architecting robust backend systems.

@@ -2,18 +2,17 @@
 import { useEffect, useRef, useState } from "react";
 
 export default function CustomCursor() {
-  const canvasRef    = useRef<HTMLCanvasElement>(null);
-  const dotRef       = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const pos       = useRef({ x: -300, y: -300 });
+  const prev      = useRef({ x: -300, y: -300 });
+  const smooth    = useRef({ x: -300, y: -300 });
+  const raf       = useRef(0);
+  const tick      = useRef(0);
+  const hovRef    = useRef(false);
+  const clkRef    = useRef(false);
+  const clickPulseRef = useRef(0);
 
-  const pos    = useRef({ x: -300, y: -300 });
-  const prev   = useRef({ x: -300, y: -300 });
-  const smooth = useRef({ x: -300, y: -300 });
-  const raf    = useRef(0);
-  const tick   = useRef(0);
-  const hovRef = useRef(false);
-  const clkRef = useRef(false);
-
-  const [hidden,   setHidden]   = useState(true);
+  const [hidden, setHidden] = useState(true);
 
   useEffect(() => {
     if (window.matchMedia("(pointer: coarse)").matches) return;
@@ -29,22 +28,19 @@ export default function CustomCursor() {
     resize();
     window.addEventListener("resize", resize);
 
-    // ── Orbital particles ──
-    const ORBITERS = 5;
-    const orbiters = Array.from({ length: ORBITERS }, (_, i) => ({
-      angle:   (i / ORBITERS) * Math.PI * 2,
-      speed:   (0.028 + i * 0.008) * (i % 2 === 0 ? 1 : -1),
-      size:    1.2 + i * 0.3,
-      opacity: 0.55 - i * 0.06,
-      // store as rgb components to easily build rgba strings
-      r: i % 2 === 0 ? 167 : 34,
-      g: i % 2 === 0 ? 139 : 211,
-      b: i % 2 === 0 ? 250 : 238,
+    // ── Arrow ghost trail ──
+    const TRAIL = 20;
+    const trail = Array.from({ length: TRAIL }, () => ({
+      x: -300, y: -300, tilt: 0, hov: false,
     }));
 
-    // ── Elastic trail ──
-    const TRAIL = 22;
-    const trail = Array.from({ length: TRAIL }, () => ({ x: -300, y: -300, r: 0 }));
+    // ── Orbital sparkles (hover only) ──
+    const SPARKS = 4;
+    const sparks = Array.from({ length: SPARKS }, (_, i) => ({
+      angle: (i / SPARKS) * Math.PI * 2,
+      speed: 0.04 + i * 0.012,
+      color: ["#a78bfa", "#f472b6", "#22d3ee", "#fbbf24"][i],
+    }));
 
     const onMove = (e: MouseEvent) => {
       prev.current = { ...pos.current };
@@ -53,7 +49,7 @@ export default function CustomCursor() {
       const t = e.target as HTMLElement;
       hovRef.current = !!t.closest("a,button,[role='button'],input,textarea,select");
     };
-    const onDown  = () => { clkRef.current = true;  };
+    const onDown  = () => { clkRef.current = true;  clickPulseRef.current = 1; };
     const onUp    = () => { clkRef.current = false; };
     const onLeave = () => setHidden(true);
     const onEnter = () => setHidden(false);
@@ -64,13 +60,78 @@ export default function CustomCursor() {
     document.addEventListener("mouseleave", onLeave);
     document.addEventListener("mouseenter", onEnter);
 
+    // ── Draw the arrow cursor shape ──
+    function drawArrow(
+      cx: CanvasRenderingContext2D,
+      x: number,
+      y: number,
+      scale: number,
+      tilt: number,
+      hov: boolean,
+      clk: boolean,
+      T: number,
+      alpha: number = 1,
+    ) {
+      cx.save();
+      cx.globalAlpha = alpha;
+      cx.translate(x, y);
+      cx.rotate(tilt);
+      const s = clk ? 0.80 : hov ? 1.1 : 1;
+      cx.scale(scale * s, scale * s);
+
+      // Arrow path — classic OS cursor shape
+      cx.beginPath();
+      cx.moveTo(0,   0);
+      cx.lineTo(0,   20);
+      cx.lineTo(4.5, 15.5);
+      cx.lineTo(8,   22);
+      cx.lineTo(10,  21);
+      cx.lineTo(6.5, 14.5);
+      cx.lineTo(12,  14);
+      cx.closePath();
+
+      if (hov) {
+        // Animated gradient fill on hover
+        const grd = cx.createLinearGradient(0, 0, 12, 22);
+        grd.addColorStop(0, "#a78bfa");
+        grd.addColorStop(0.45, "#f472b6");
+        grd.addColorStop(1, "#22d3ee");
+        cx.fillStyle = grd;
+
+        // Pulsing outer glow
+        cx.shadowColor = `rgba(167,139,250,${0.8 + Math.sin(T * 0.09) * 0.2})`;
+        cx.shadowBlur  = 14 + Math.sin(T * 0.08) * 5;
+        cx.fill();
+        cx.shadowBlur = 0;
+
+        // Bright inner stroke
+        cx.strokeStyle = `rgba(255,255,255,${0.55 + Math.sin(T * 0.12) * 0.2})`;
+        cx.lineWidth   = 0.9;
+        cx.stroke();
+      } else {
+        // Normal: white fill + dark stroke + subtle shadow
+        cx.shadowColor    = "rgba(0,0,0,0.4)";
+        cx.shadowBlur     = 7;
+        cx.shadowOffsetX  = 2;
+        cx.shadowOffsetY  = 2;
+        cx.fillStyle      = "#ffffff";
+        cx.fill();
+        cx.shadowBlur = 0; cx.shadowOffsetX = 0; cx.shadowOffsetY = 0;
+        cx.strokeStyle = "rgba(60,60,60,0.75)";
+        cx.lineWidth   = 1;
+        cx.stroke();
+      }
+
+      cx.restore();
+    }
+
     const render = () => {
       tick.current++;
       const T   = tick.current;
       const hov = hovRef.current;
       const clk = clkRef.current;
 
-      // Smooth follower
+      // Smooth follower (for orbiters)
       smooth.current.x += (pos.current.x - smooth.current.x) * 0.12;
       smooth.current.y += (pos.current.y - smooth.current.y) * 0.12;
       const sx = smooth.current.x;
@@ -78,96 +139,85 @@ export default function CustomCursor() {
       const px = pos.current.x;
       const py = pos.current.y;
 
-      // Velocity
+      // Velocity / tilt
       const dvx = px - prev.current.x;
       const dvy = py - prev.current.y;
       const spd = Math.hypot(dvx, dvy);
-      const ang = Math.atan2(dvy, dvx);
+      const tilt = Math.atan2(dvy, dvx) * 0.09 * Math.min(spd / 8, 1);
+
+      // Decay click pulse
+      if (clickPulseRef.current > 0) clickPulseRef.current *= 0.83;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // ── Trail ──
-      trail[0] = { x: px, y: py, r: Math.min(spd * 0.35 + 4, 10) };
+      // ── Arrow ghost trail ──
+      trail[0] = { x: px, y: py, tilt, hov };
       for (let i = TRAIL - 1; i > 0; i--) {
-        trail[i].x += (trail[i - 1].x - trail[i].x) * 0.42;
-        trail[i].y += (trail[i - 1].y - trail[i].y) * 0.42;
-        trail[i].r  = trail[i - 1].r * (1 - i / TRAIL);
+        trail[i].x    += (trail[i - 1].x - trail[i].x) * 0.38;
+        trail[i].y    += (trail[i - 1].y - trail[i].y) * 0.38;
+        trail[i].tilt  = trail[i - 1].tilt;
+        trail[i].hov   = trail[i - 1].hov;
       }
 
-      for (let i = TRAIL - 1; i >= 0; i--) {
-        const t  = 1 - i / TRAIL;
-        const pt = trail[i];
-        const r  = Math.max(pt.r, 0.5);
-        const sx2 = i < 3 ? 1 + spd * 0.03  : 1;
-        const sy2 = i < 3 ? Math.max(1 - spd * 0.015, 0.5) : 1;
+      for (let i = TRAIL - 1; i >= 2; i--) {
+        const t     = 1 - i / TRAIL;
+        const alpha = t * t * 0.5;
+        if (alpha < 0.02) continue;
+        const sc = 0.28 + t * 0.55;
+        drawArrow(ctx, trail[i].x, trail[i].y, sc, trail[i].tilt, trail[i].hov, false, T, alpha);
+      }
 
-        const grd = ctx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, r * 3.5);
-        grd.addColorStop(0,   hov ? `rgba(167,139,250,${t * 0.8})` : `rgba(139,92,246,${t * 0.7})`);
-        grd.addColorStop(0.5, hov ? `rgba(34,211,238,${t * 0.35})` : `rgba(124,58,237,${t * 0.3})`);
+      // ── Click ripple ──
+      if (clickPulseRef.current > 0.04) {
+        const cp = clickPulseRef.current;
+        const pr = (1 - cp) * 44;
+        const grd = ctx.createRadialGradient(px, py, 0, px, py, pr);
+        grd.addColorStop(0,   `rgba(167,139,250,${cp * 0.45})`);
+        grd.addColorStop(0.5, `rgba(244,114,182,${cp * 0.2})`);
         grd.addColorStop(1,   "rgba(0,0,0,0)");
-
-        ctx.save();
-        ctx.translate(pt.x, pt.y);
-        ctx.rotate(i < 5 ? ang : 0);
-        ctx.scale(sx2, sy2);
-        ctx.translate(-pt.x, -pt.y);
         ctx.beginPath();
-        ctx.arc(pt.x, pt.y, r * 3.5, 0, Math.PI * 2);
+        ctx.arc(px, py, pr, 0, Math.PI * 2);
         ctx.fillStyle = grd;
         ctx.fill();
-        ctx.restore();
       }
 
-      // ── Orbiters ──
-      const orbR = hov ? 26 : clk ? 14 : 20;
-      orbiters.forEach((o) => {
-        o.angle += o.speed * (hov ? 1.8 : 1);
-        const ox = sx + Math.cos(o.angle) * orbR;
-        const oy = sy + Math.sin(o.angle) * orbR;
+      // ── Hover sparkles orbiting cursor tip ──
+      if (hov) {
+        sparks.forEach((sp) => {
+          sp.angle += sp.speed;
+          const orbR = 22 + Math.sin(T * 0.05) * 4;
+          // Orbit around the cursor tip point
+          const ox = px + Math.cos(sp.angle) * orbR;
+          const oy = py + Math.sin(sp.angle) * orbR;
 
-        // Glow halo
-        const g = ctx.createRadialGradient(ox, oy, 0, ox, oy, o.size * 5);
-        g.addColorStop(0, `rgba(${o.r},${o.g},${o.b},${o.opacity})`);
-        g.addColorStop(1, `rgba(${o.r},${o.g},${o.b},0)`);
-        ctx.beginPath();
-        ctx.arc(ox, oy, o.size * 5, 0, Math.PI * 2);
-        ctx.fillStyle = g;
-        ctx.fill();
+          // Glow halo
+          const [rr, gg, bb] = hexToRgb(sp.color);
+          const g = ctx.createRadialGradient(ox, oy, 0, ox, oy, 7);
+          g.addColorStop(0, `rgba(${rr},${gg},${bb},0.7)`);
+          g.addColorStop(1, `rgba(${rr},${gg},${bb},0)`);
+          ctx.beginPath();
+          ctx.arc(ox, oy, 7, 0, Math.PI * 2);
+          ctx.fillStyle = g;
+          ctx.fill();
 
-        // Core
-        ctx.beginPath();
-        ctx.arc(ox, oy, o.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${o.r},${o.g},${o.b},1)`;
-        ctx.fill();
+          // Core dot
+          ctx.beginPath();
+          ctx.arc(ox, oy, 1.8, 0, Math.PI * 2);
+          ctx.fillStyle = sp.color;
+          ctx.fill();
 
-        // Line to center
-        ctx.beginPath();
-        ctx.moveTo(sx, sy);
-        ctx.lineTo(ox, oy);
-        ctx.strokeStyle = `rgba(${o.r},${o.g},${o.b},${o.opacity * 0.2})`;
-        ctx.lineWidth   = 0.6;
-        ctx.stroke();
-      });
-
-      // ── Center dot — direct DOM, no React state for perf ──
-      const el = dotRef.current;
-      if (el) {
-        // Use transform only — fastest path, no layout thrash
-        el.style.transform = `translate(${px - 5}px, ${py - 5}px) rotate(${hov ? T * 1.5 : 0}deg) scale(${clk ? 0.55 : hov ? 1.4 : 1}) scaleX(${1 + spd * 0.025}) scaleY(${Math.max(1 - spd * 0.012, 0.6)})`;
-
-        const sz = clk ? 8 : hov ? 14 : 10;
-        el.style.width  = `${sz}px`;
-        el.style.height = `${sz}px`;
-        // recenter offset when size changes
-        el.style.transform = `translate(${px - sz / 2}px, ${py - sz / 2}px) rotate(${hov ? T * 1.5 : 0}deg) scaleX(${clk ? 0.7 : 1 + spd * 0.02}) scaleY(${clk ? 0.7 : Math.max(1 - spd * 0.01, 0.65)})`;
-
-        el.style.background = hov
-          ? `conic-gradient(from ${T * 3}deg, #a78bfa, #22d3ee, #f472b6, #a78bfa)`
-          : "#ffffff";
-        el.style.boxShadow = hov
-          ? `0 0 ${12 + Math.sin(T * 0.1) * 4}px rgba(167,139,250,0.9), 0 0 ${24 + Math.sin(T * 0.08) * 6}px rgba(124,58,237,0.5)`
-          : "0 0 6px rgba(255,255,255,0.85)";
+          // Faint line to tip
+          ctx.beginPath();
+          ctx.moveTo(px, py);
+          ctx.lineTo(ox, oy);
+          ctx.strokeStyle = `rgba(${rr},${gg},${bb},0.15)`;
+          ctx.lineWidth   = 0.6;
+          ctx.stroke();
+        });
       }
+
+      // ── Main arrow cursor ──
+      drawArrow(ctx, px, py, 1.4, tilt, hov, clk, T, 1);
 
       raf.current = requestAnimationFrame(render);
     };
@@ -188,7 +238,6 @@ export default function CustomCursor() {
 
   return (
     <>
-      {/* Canvas: trail + orbiters */}
       <canvas
         ref={canvasRef}
         style={{
@@ -196,32 +245,20 @@ export default function CustomCursor() {
           top:           0,
           left:          0,
           pointerEvents: "none",
-          zIndex:        99996,
+          zIndex:        99999,
           opacity:       hidden ? 0 : 1,
           transition:    "opacity 0.4s",
         }}
       />
-
-      {/* Center dot — positioned via transform in rAF for zero-lag */}
-      <div
-        ref={dotRef}
-        style={{
-          position:      "fixed",
-          top:           0,
-          left:          0,
-          pointerEvents: "none",
-          zIndex:        99999,
-          borderRadius:  "50%",
-          width:         "10px",
-          height:        "10px",
-          background:    "#fff",
-          opacity:       hidden ? 0 : 1,
-          transition:    "opacity 0.3s, width 0.2s, height 0.2s, background 0.3s, box-shadow 0.3s",
-          willChange:    "transform",
-        }}
-      />
-
       <style>{`* { cursor: none !important; }`}</style>
     </>
   );
+}
+
+// ── Utility: hex → [r,g,b] ──
+function hexToRgb(hex: string): [number, number, number] {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return [r, g, b];
 }
