@@ -5,7 +5,7 @@ import CustomCursor from "@/components/CustomCursor";
 import Loader from "@/components/Loader";
 
 export const metadata: Metadata = {
-  title: "Your Name — Full Stack Developer",
+  title: "Dua Memon— Full Stack Developer",
   description: "Full Stack Developer building scalable web applications.",
 };
 
